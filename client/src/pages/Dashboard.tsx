@@ -173,15 +173,15 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-2 block">链</label>
-                <Select value={filters.chainId || ""} onValueChange={(value) => {
-                  setFilters({ ...filters, chainId: value || undefined });
+                <Select value={filters.chainId || "all"} onValueChange={(value) => {
+                  setFilters({ ...filters, chainId: value === "all" ? undefined : value });
                   setPage(0);
                 }}>
                   <SelectTrigger>
                     <SelectValue placeholder="所有链" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">所有链</SelectItem>
+                    <SelectItem value="all">所有链</SelectItem>
                     {CHAIN_OPTIONS.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -192,15 +192,15 @@ export default function Dashboard() {
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-2 block">交易类型</label>
-                <Select value={filters.type || ""} onValueChange={(value) => {
-                  setFilters({ ...filters, type: value || undefined });
+                <Select value={filters.type || "all"} onValueChange={(value) => {
+                  setFilters({ ...filters, type: value === "all" ? undefined : value });
                   setPage(0);
                 }}>
                   <SelectTrigger>
                     <SelectValue placeholder="所有类型" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">所有类型</SelectItem>
+                    <SelectItem value="all">所有类型</SelectItem>
                     {TRANSACTION_TYPE_OPTIONS.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
