@@ -1,6 +1,6 @@
-// Chain configurations
+// 链配置
 export const CHAINS = {
-  1: { id: 1, name: "Ethereum", symbol: "ETH", rpcUrl: "https://eth.llamarpc.com" },
+  1: { id: 1, name: "以太坊", symbol: "ETH", rpcUrl: "https://eth.llamarpc.com" },
   8453: { id: 8453, name: "Base", symbol: "BASE", rpcUrl: "https://base.llamarpc.com" },
   42161: { id: 42161, name: "Arbitrum", symbol: "ARB", rpcUrl: "https://arbitrum.llamarpc.com" },
   137: { id: 137, name: "Polygon", symbol: "MATIC", rpcUrl: "https://polygon.llamarpc.com" },
@@ -13,13 +13,13 @@ export const CHAIN_OPTIONS = Object.values(CHAINS).map(chain => ({
   label: chain.name,
 }));
 
-// Transaction types
+// 交易类型
 export const TRANSACTION_TYPES = {
   CIRCLE_MINT: "Circle Mint (法币兑换)",
   CIRCLE_BURN: "Circle Burn (法币赎回)",
   CCTP_BURN: "CCTP Burn (跨链销毁)",
   CCTP_MINT: "CCTP Mint (跨链铸造)",
-  OTHER: "Other",
+  OTHER: "其他",
 } as const;
 
 export const TRANSACTION_TYPE_OPTIONS = Object.entries(TRANSACTION_TYPES).map(([key, label]) => ({
@@ -27,7 +27,7 @@ export const TRANSACTION_TYPE_OPTIONS = Object.entries(TRANSACTION_TYPES).map(([
   label,
 }));
 
-// USDC contract addresses
+// USDC 合约地址
 export const USDC_ADDRESSES = {
   1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   8453: "0x833589fCD6eDb6E08f4c7C32D4f71b1566dA3C95",
@@ -37,9 +37,9 @@ export const USDC_ADDRESSES = {
   43114: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
 } as const;
 
-// Circle Mint addresses (official minters)
+// Circle Mint 地址（官方铸造者）
 export const CIRCLE_MINTERS = {
-  1: "0xE7ed1fa7f45D05C308232b7d0BFF3E0E5f81985c", // Ethereum
+  1: "0xE7ed1fa7f45D05C308232b7d0BFF3E0E5f81985c", // 以太坊
   8453: "0x1LD100arWBvEeE9a8y9wxYkEab69dEFqFvkqP6AP8", // Base
   42161: "0xcE2CC46682E8C2a1F718f5C8169B8ea3714A4654", // Arbitrum
   137: "0x1LD100arWBvEeE9a8y9wxYkEab69dEFqFvkqP6AP8", // Polygon
@@ -47,7 +47,7 @@ export const CIRCLE_MINTERS = {
   43114: "0x1LD100arWBvEeE9a8y9wxYkEab69dEFqFvkqP6AP8", // Avalanche
 } as const;
 
-// CCTP contract addresses
+// CCTP 合约地址
 export const CCTP_CONTRACTS = {
   tokenMessenger: {
     1: "0xBd3fa81B58ba92a82136038B25aDec7066e1C60a",
@@ -67,14 +67,14 @@ export const CCTP_CONTRACTS = {
   },
 } as const;
 
-// Date format
+// 日期格式
 export const DATE_FORMAT = "YYYY-MM-DD";
 export const TIME_FORMAT = "HH:mm:ss";
 export const DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
-// Pagination
+// 分页
 export const DEFAULT_PAGE_SIZE = 20;
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
-// Alert threshold (in USDC)
-export const DEFAULT_ALERT_THRESHOLD = 1000000; // 1 million USDC
+// 告警阈值（USDC）
+export const DEFAULT_ALERT_THRESHOLD = 1000000; // 100 万 USDC

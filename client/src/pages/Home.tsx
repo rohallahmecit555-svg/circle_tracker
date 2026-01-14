@@ -13,17 +13,17 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Circle Tracker
+            Circle 链上行为追踪器
           </h1>
           <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-            Real-time monitoring and analysis of USDC Mint/Burn and CCTP cross-chain settlements across multiple blockchains.
+            实时监控和分析 USDC Mint/Burn 和 CCTP 跨链结算，支持以太坊、Base、Arbitrum 等多条区块链。
           </p>
           <Button
             size="lg"
             onClick={() => setLocation("/dashboard")}
             className="gap-2 bg-blue-600 hover:bg-blue-700"
           >
-            Launch Dashboard
+            打开仪表板
             <ArrowRight className="w-5 h-5" />
           </Button>
         </div>
@@ -32,11 +32,11 @@ export default function Home() {
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
               <Zap className="w-8 h-8 text-blue-400 mb-2" />
-              <CardTitle className="text-white">Real-time Monitoring</CardTitle>
+              <CardTitle className="text-white">实时监控</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription className="text-slate-400">
-                Monitor USDC and CCTP contract events across Ethereum, Base, Arbitrum, and other EVM chains in real-time.
+                实时监听 USDC 和 CCTP 合约事件，跨越以太坊、Base、Arbitrum 等多条 EVM 链。
               </CardDescription>
             </CardContent>
           </Card>
@@ -44,11 +44,11 @@ export default function Home() {
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
               <BarChart3 className="w-8 h-8 text-green-400 mb-2" />
-              <CardTitle className="text-white">Advanced Analytics</CardTitle>
+              <CardTitle className="text-white">高级分析</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription className="text-slate-400">
-                Analyze transaction patterns, visualize Mint/Burn trends, and track cross-chain flows with detailed filters.
+                分析交易模式、可视化 Mint/Burn 趋势、追踪跨链流量，支持多维度过滤。
               </CardDescription>
             </CardContent>
           </Card>
@@ -56,11 +56,11 @@ export default function Home() {
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
               <ArrowRight className="w-8 h-8 text-purple-400 mb-2" />
-              <CardTitle className="text-white">Data Export</CardTitle>
+              <CardTitle className="text-white">数据导出</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription className="text-slate-400">
-                Export transaction data to Excel or CSV for further analysis and reporting.
+                将交易数据导出为 Excel 或 CSV 格式，便于进一步分析和报告。
               </CardDescription>
             </CardContent>
           </Card>

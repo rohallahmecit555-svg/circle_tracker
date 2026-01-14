@@ -19,7 +19,7 @@ interface FilterState {
 
 const getChainName = (chainId: number) => {
   const chain = Object.values(CHAINS).find(c => c.id === chainId);
-  return chain?.name || "Unknown";
+  return chain?.name || "未知";
 };
 
 const getTransactionTypeColor = (type: string) => {
@@ -83,19 +83,19 @@ export default function Dashboard() {
 
   const handleExport = () => {
     const data = transactions.map(tx => ({
-      "Transaction Hash": tx.txHash,
-      "Chain": getChainName(tx.chainId),
-      "Type": TRANSACTION_TYPES[tx.type as keyof typeof TRANSACTION_TYPES],
-      "Amount (USDC)": tx.amount.toString(),
-      "From": tx.fromAddress,
-      "To": tx.toAddress,
-      "Timestamp": format(new Date(tx.timestamp), "yyyy-MM-dd HH:mm:ss"),
-      "Status": tx.status,
+      "交易哈希": tx.txHash,
+      "链": getChainName(tx.chainId),
+      "类型": TRANSACTION_TYPES[tx.type as keyof typeof TRANSACTION_TYPES],
+      "金额 (USDC)": tx.amount.toString(),
+      "发送方": tx.fromAddress,
+      "接收方": tx.toAddress,
+      "时间": format(new Date(tx.timestamp), "yyyy-MM-dd HH:mm:ss"),
+      "状态": tx.status,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "交易");
     XLSX.writeFile(workbook, `circle-tracker-${format(new Date(), "yyyy-MM-dd-HHmmss")}.xlsx`);
   };
 
@@ -104,8 +104,8 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900">Circle Tracker</h1>
-            <p className="text-slate-600 mt-2">Real-time USDC Mint/Burn and CCTP monitoring</p>
+            <h1 className="text-4xl font-bold text-slate-900">Circle 链上行为追踪器</h1>
+            <p className="text-slate-600 mt-2">实时监控 USDC Mint/Burn 和 CCTP 跨链结算</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -116,7 +116,7 @@ export default function Dashboard() {
               className="gap-2"
             >
               <RefreshCw className="w-4 h-4" />
-              Refresh
+              刷新
             </Button>
             <Button
               size="sm"
@@ -125,7 +125,7 @@ export default function Dashboard() {
               className="gap-2"
             >
               <Download className="w-4 h-4" />
-              Export Excel
+              导出 Excel
             </Button>
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">Total Transactions</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">总交易数</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-slate-900">{summaryStats.totalTransactions}</div>
@@ -141,7 +141,7 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">Total Mint</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">总 Mint 金额</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">${summaryStats.totalMint.toLocaleString()}</div>
@@ -149,7 +149,7 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">Total Burn</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">总 Burn 金额</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-red-600">${summaryStats.totalBurn.toLocaleString()}</div>
@@ -157,7 +157,7 @@ export default function Dashboard() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">CCTP Transfers</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">CCTP 转账金额</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-blue-600">${summaryStats.totalCCTPTransfers.toLocaleString()}</div>
@@ -167,21 +167,21 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Filters</CardTitle>
+            <CardTitle>过滤器</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Chain</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">链</label>
                 <Select value={filters.chainId || ""} onValueChange={(value) => {
                   setFilters({ ...filters, chainId: value || undefined });
                   setPage(0);
                 }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Chains" />
+                    <SelectValue placeholder="所有链" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Chains</SelectItem>
+                    <SelectItem value="">所有链</SelectItem>
                     {CHAIN_OPTIONS.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -191,16 +191,16 @@ export default function Dashboard() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Type</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">交易类型</label>
                 <Select value={filters.type || ""} onValueChange={(value) => {
                   setFilters({ ...filters, type: value || undefined });
                   setPage(0);
                 }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Types" />
+                    <SelectValue placeholder="所有类型" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="">所有类型</SelectItem>
                     {TRANSACTION_TYPE_OPTIONS.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -210,7 +210,7 @@ export default function Dashboard() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Search Hash</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">搜索交易哈希</label>
                 <Input
                   placeholder="0x..."
                   value={filters.searchHash || ""}
@@ -227,7 +227,7 @@ export default function Dashboard() {
                   }}
                   className="w-full"
                 >
-                  Reset
+                  重置过滤器
                 </Button>
               </div>
             </div>
@@ -236,33 +236,33 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Transactions</CardTitle>
-            <CardDescription>Showing {transactions.length} records</CardDescription>
+            <CardTitle>交易列表</CardTitle>
+            <CardDescription>显示 {transactions.length} 条交易记录</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Hash</TableHead>
-                    <TableHead>Chain</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Amount (USDC)</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>交易哈希</TableHead>
+                    <TableHead>链</TableHead>
+                    <TableHead>类型</TableHead>
+                    <TableHead className="text-right">金额 (USDC)</TableHead>
+                    <TableHead>时间</TableHead>
+                    <TableHead>状态</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-slate-500">
-                        Loading...
+                        加载中...
                       </TableCell>
                     </TableRow>
                   ) : transactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-slate-500">
-                        No transactions
+                        暂无交易记录
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -292,7 +292,7 @@ export default function Dashboard() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={tx.status === "CONFIRMED" ? "default" : "secondary"}>
-                            {tx.status}
+                            {tx.status === "CONFIRMED" ? "已确认" : tx.status === "PENDING" ? "待确认" : "失败"}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -304,7 +304,7 @@ export default function Dashboard() {
 
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-slate-600">
-                Page {page + 1} ({pageSize} per page)
+                第 {page + 1} 页 (每页 {pageSize} 条)
               </div>
               <div className="flex gap-2">
                 <Button
@@ -313,7 +313,7 @@ export default function Dashboard() {
                   onClick={() => setPage(Math.max(0, page - 1))}
                   disabled={page === 0}
                 >
-                  Previous
+                  上一页
                 </Button>
                 <Button
                   variant="outline"
@@ -321,7 +321,7 @@ export default function Dashboard() {
                   onClick={() => setPage(page + 1)}
                   disabled={transactions.length < pageSize}
                 >
-                  Next
+                  下一页
                 </Button>
               </div>
             </div>
