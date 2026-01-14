@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, transactions, events, statistics, alertConfigs } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,97 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Circle Tracker specific queries
+
+export async function getTransactionByHash(txHash: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.txHash, txHash))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getTransactions(filters: {
+  chainId?: number;
+  type?: string;
+  startTime?: Date;
+  endTime?: Date;
+  minAmount?: string;
+  maxAmount?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions = [];
+  
+  if (filters.chainId) {
+    conditions.push(eq(transactions.chainId, filters.chainId));
+  }
+  if (filters.type) {
+    conditions.push(eq(transactions.type, filters.type as any));
+  }
+  if (filters.startTime) {
+    conditions.push(gte(transactions.timestamp, filters.startTime));
+  }
+  if (filters.endTime) {
+    conditions.push(lte(transactions.timestamp, filters.endTime));
+  }
+  
+  const result = await db
+    .select()
+    .from(transactions)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(transactions.timestamp))
+    .limit(filters.limit || 100)
+    .offset(filters.offset || 0);
+  
+  return result;
+}
+
+export async function getStatistics(filters: {
+  date?: string;
+  chainId?: number;
+  type?: string;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions = [];
+  
+  if (filters.date) {
+    conditions.push(eq(statistics.date, filters.date));
+  }
+  if (filters.chainId) {
+    conditions.push(eq(statistics.chainId, filters.chainId));
+  }
+  if (filters.type) {
+    conditions.push(eq(statistics.type, filters.type));
+  }
+  
+  const result = await db
+    .select()
+    .from(statistics)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+  
+  return result;
+}
+
+export async function getAlertConfig(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db
+    .select()
+    .from(alertConfigs)
+    .where(eq(alertConfigs.userId, userId))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : undefined;
+}
