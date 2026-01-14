@@ -6,16 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Download, RefreshCw, History } from "lucide-react";
-import { useLocation } from "wouter";
+import { Calendar, Download, RefreshCw, ArrowLeft } from "lucide-react";
 import { CHAINS, TRANSACTION_TYPES, CHAIN_OPTIONS, TRANSACTION_TYPE_OPTIONS } from "@shared/constants";
-import { format } from "date-fns";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import * as XLSX from "xlsx";
+import { useLocation } from "wouter";
 
 interface FilterState {
   chainId?: string;
   type?: string;
-  searchHash?: string;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 const getChainName = (chainId: number) => {
@@ -38,12 +39,13 @@ const getTransactionTypeColor = (type: string) => {
   }
 };
 
-export default function Dashboard() {
+export default function HistoryTracker() {
   const [, setLocation] = useLocation();
   const [filters, setFilters] = useState<FilterState>({
     chainId: undefined,
     type: undefined,
-    searchHash: undefined,
+    startDate: subDays(new Date(), 30),
+    endDate: new Date(),
   });
   const [page, setPage] = useState(0);
   const pageSize = 20;
@@ -52,15 +54,10 @@ export default function Dashboard() {
     {
       chainId: filters.chainId ? parseInt(filters.chainId) : undefined,
       type: filters.type,
+      startTime: filters.startDate,
+      endTime: filters.endDate,
       limit: pageSize,
       offset: page * pageSize,
-    },
-    { enabled: true }
-  );
-
-  const { data: statistics = [] } = trpc.tracker.getStatistics.useQuery(
-    {
-      date: format(new Date(), "yyyy-MM-dd"),
     },
     { enabled: true }
   );
@@ -71,6 +68,7 @@ export default function Dashboard() {
       totalBurn: 0,
       totalCCTPTransfers: 0,
       totalTransactions: transactions.length,
+      avgAmount: 0,
     };
 
     transactions.forEach(tx => {
@@ -79,6 +77,11 @@ export default function Dashboard() {
       if (tx.type === "CIRCLE_BURN") stats.totalBurn += amount;
       if (tx.type === "CCTP_BURN" || tx.type === "CCTP_MINT") stats.totalCCTPTransfers += amount;
     });
+
+    if (transactions.length > 0) {
+      const totalAmount = stats.totalMint + stats.totalBurn + stats.totalCCTPTransfers;
+      stats.avgAmount = totalAmount / transactions.length;
+    }
 
     return stats;
   }, [transactions]);
@@ -97,28 +100,37 @@ export default function Dashboard() {
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "交易");
-    XLSX.writeFile(workbook, `circle-tracker-${format(new Date(), "yyyy-MM-dd-HHmmss")}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "历史交易");
+    XLSX.writeFile(workbook, `circle-history-${format(new Date(), "yyyy-MM-dd-HHmmss")}.xlsx`);
+  };
+
+  const handleQuickDateRange = (days: number) => {
+    const end = new Date();
+    const start = subDays(end, days);
+    setFilters({ ...filters, startDate: start, endDate: end });
+    setPage(0);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900">Circle 链上行为追踪器</h1>
-            <p className="text-slate-600 mt-2">实时监控 USDC Mint/Burn 和 CCTP 跨链结算</p>
-          </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-4">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={() => setLocation("/history")}
+              onClick={() => setLocation("/dashboard")}
               className="gap-2"
             >
-              <History className="w-4 h-4" />
-              历史追溯
+              <ArrowLeft className="w-4 h-4" />
+              返回
             </Button>
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900">历史事件追溯</h1>
+              <p className="text-slate-600 mt-2">查询和分析历史交易数据</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -141,7 +153,70 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* 快速日期选择 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              快速日期选择
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={
+                  filters.startDate && filters.endDate &&
+                  filters.startDate.getTime() === subDays(new Date(), 7).getTime()
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => handleQuickDateRange(7)}
+              >
+                最近 7 天
+              </Button>
+              <Button
+                variant={
+                  filters.startDate && filters.endDate &&
+                  filters.startDate.getTime() === subDays(new Date(), 30).getTime()
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => handleQuickDateRange(30)}
+              >
+                最近 30 天
+              </Button>
+              <Button
+                variant={
+                  filters.startDate && filters.endDate &&
+                  filters.startDate.getTime() === subDays(new Date(), 90).getTime()
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => handleQuickDateRange(90)}
+              >
+                最近 90 天
+              </Button>
+              <Button
+                variant={
+                  filters.startDate && filters.endDate &&
+                  filters.startDate.getTime() === subDays(new Date(), 365).getTime()
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => handleQuickDateRange(365)}
+              >
+                最近 1 年
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 统计信息 */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-slate-600">总交易数</CardTitle>
@@ -155,7 +230,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-slate-600">总 Mint 金额</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">${summaryStats.totalMint.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-green-600">${summaryStats.totalMint.toLocaleString()}</div>
             </CardContent>
           </Card>
           <Card>
@@ -163,25 +238,58 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-slate-600">总 Burn 金额</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-600">${summaryStats.totalBurn.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-red-600">${summaryStats.totalBurn.toLocaleString()}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">CCTP 转账金额</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">CCTP 转账</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">${summaryStats.totalCCTPTransfers.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-blue-600">${summaryStats.totalCCTPTransfers.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">平均金额</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">${summaryStats.avgAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             </CardContent>
           </Card>
         </div>
 
+        {/* 高级过滤器 */}
         <Card>
           <CardHeader>
-            <CardTitle>过滤器</CardTitle>
+            <CardTitle>高级过滤</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">开始日期</label>
+                <Input
+                  type="date"
+                  value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd") : ""}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    setFilters({ ...filters, startDate: date });
+                    setPage(0);
+                  }}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">结束日期</label>
+                <Input
+                  type="date"
+                  value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd") : ""}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    setFilters({ ...filters, endDate: date });
+                    setPage(0);
+                  }}
+                />
+              </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-2 block">链</label>
                 <Select value={filters.chainId || "all"} onValueChange={(value) => {
@@ -220,20 +328,16 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">搜索交易哈希</label>
-                <Input
-                  placeholder="0x..."
-                  value={filters.searchHash || ""}
-                  onChange={(e) => setFilters({ ...filters, searchHash: e.target.value })}
-                  className="font-mono text-sm"
-                />
-              </div>
               <div className="flex items-end">
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setFilters({ chainId: undefined, type: undefined, searchHash: undefined });
+                    setFilters({
+                      chainId: undefined,
+                      type: undefined,
+                      startDate: subDays(new Date(), 30),
+                      endDate: new Date(),
+                    });
                     setPage(0);
                   }}
                   className="w-full"
@@ -245,10 +349,15 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* 交易列表 */}
         <Card>
           <CardHeader>
             <CardTitle>交易列表</CardTitle>
-            <CardDescription>显示 {transactions.length} 条交易记录</CardDescription>
+            <CardDescription>
+              {filters.startDate && filters.endDate
+                ? `${format(filters.startDate, "yyyy-MM-dd")} 至 ${format(filters.endDate, "yyyy-MM-dd")} 的交易记录`
+                : "显示交易记录"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -313,6 +422,7 @@ export default function Dashboard() {
               </Table>
             </div>
 
+            {/* 分页 */}
             <div className="flex justify-between items-center mt-6">
               <div className="text-sm text-slate-600">
                 第 {page + 1} 页 (每页 {pageSize} 条)
