@@ -316,30 +316,41 @@ export default function Dashboard() {
             {/* 手机版卡片列表 */}
             <div className="sm:hidden space-y-3">
               {transactions.map((tx) => (
-                <div key={tx.id} className="border rounded-lg p-3 bg-white">
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate">
-                        <TxHashLink txHash={tx.txHash} chainId={tx.chainId} />
-                      </div>
-                      <p className="text-sm font-medium text-slate-900 mt-1">{getChainName(tx.chainId)}</p>
+                <div key={tx.id} className="border border-slate-200 rounded-lg p-4 bg-gradient-to-br from-slate-50 to-white shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center mb-3 pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Badge className={`${getTransactionTypeColor(tx.type)} text-xs font-semibold`}>
+                        {tx.type.replace('_', ' ')}
+                      </Badge>
+                      <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                        {getChainName(tx.chainId)}
+                      </span>
                     </div>
-                    <Badge className={`${getTransactionTypeColor(tx.type)} text-xs flex-shrink-0`}>
-                      {tx.type}
-                    </Badge>
+                    <Badge variant="outline" className="text-xs text-slate-600">{tx.status}</Badge>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <div>
-                      <p className="text-xs text-slate-600">金额</p>
-                      <p className="text-sm font-bold text-slate-900">{parseFloat(tx.amount || "0").toLocaleString()} USDC</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600">时间</p>
-                      <p className="text-sm font-medium text-slate-900">{format(new Date(tx.timestamp), "MM-dd HH:mm")}</p>
-                    </div>
+
+                  <div className="mb-3">
+                    <p className="text-xs text-slate-500 mb-1.5 font-medium">交易哈希</p>
+                    <button
+                      onClick={() => window.open(getExplorerUrl(tx.chainId, tx.txHash), '_blank')}
+                      className="w-full px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-blue-700 font-mono text-xs font-semibold transition-colors flex items-center justify-between"
+                    >
+                      <span className="truncate">{tx.txHash.slice(0, 20)}...</span>
+                      <span className="ml-2 text-blue-500 flex-shrink-0">→</span>
+                    </button>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <Badge variant="outline" className="text-xs">{tx.status}</Badge>
+
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-white rounded border border-slate-100 p-2.5">
+                      <p className="text-xs text-slate-500 mb-1 font-medium">金额</p>
+                      <p className="text-sm font-bold text-slate-900">{parseFloat(tx.amount || "0").toLocaleString()}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">USDC</p>
+                    </div>
+                    <div className="bg-white rounded border border-slate-100 p-2.5">
+                      <p className="text-xs text-slate-500 mb-1 font-medium">时间</p>
+                      <p className="text-sm font-bold text-slate-900">{format(new Date(tx.timestamp), "MM-dd")}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{format(new Date(tx.timestamp), "HH:mm")}</p>
+                    </div>
                   </div>
                 </div>
               ))}
