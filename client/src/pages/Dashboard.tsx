@@ -1,4 +1,3 @@
-'use client';
 
 import { useState, useMemo } from 'react';
 import { trpc } from "@/lib/trpc";
@@ -74,8 +73,9 @@ export default function Dashboard() {
     searchHash: undefined,
   });
   const [page, setPage] = useState(0);
-  const pageSize = 100; // 增加到 100 条，确保一次性显示所有数据
+  const pageSize = 100;
 
+  // 获取分页的交易列表（用于显示表格）
   const { data: transactions = [], isLoading, refetch } = trpc.tracker.getTransactions.useQuery({
     chainId: filters.chainId ? parseInt(filters.chainId) : undefined,
     type: filters.type,
@@ -83,31 +83,28 @@ export default function Dashboard() {
     offset: page * pageSize,
   });
 
+  // 获取全局统计数据（所有交易的总和）
+  const { data: summary } = trpc.tracker.getSummary.useQuery({
+    chainId: filters.chainId ? parseInt(filters.chainId) : undefined,
+    type: filters.type,
+  });
+
   const summaryStats = useMemo(() => {
-    let totalTransactions = 0;
-    let totalMint = 0;
-    let totalBurn = 0;
-    let totalCCTPTransfers = 0;
-
-    for (const tx of transactions) {
-      totalTransactions++;
-      const amount = parseFloat(tx.amount || "0");
-      if (tx.type === "CIRCLE_MINT") {
-        totalMint += amount;
-      } else if (tx.type === "CIRCLE_BURN") {
-        totalBurn += amount;
-      } else if (tx.type === "CCTP_MINT" || tx.type === "CCTP_BURN") {
-        totalCCTPTransfers += amount;
-      }
+    if (summary) {
+      return {
+        totalTransactions: summary.totalCount,
+        totalMint: summary.mintAmount,
+        totalBurn: summary.burnAmount,
+        totalCCTPTransfers: summary.cctpAmount,
+      };
     }
-
     return {
-      totalTransactions,
-      totalMint,
-      totalBurn,
-      totalCCTPTransfers,
+      totalTransactions: 0,
+      totalMint: 0,
+      totalBurn: 0,
+      totalCCTPTransfers: 0,
     };
-  }, [transactions]);
+  }, [summary]);
 
   const handleExport = () => {
     const data = transactions.map(tx => ({
@@ -252,15 +249,12 @@ export default function Dashboard() {
                 </Select>
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">交易哈希</label>
                 <Input
                   placeholder="输入交易哈希..."
                   value={filters.searchHash || ""}
-                  onChange={(e) => {
-                    setFilters({ ...filters, searchHash: e.target.value });
-                    setPage(0);
-                  }}
+                  onChange={(e) => setFilters({ ...filters, searchHash: e.target.value })}
                   className="text-xs sm:text-sm"
                 />
               </div>
@@ -268,126 +262,70 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* 交易表格 */}
-        <Card className="overflow-hidden">
+        {/* 交易列表 */}
+        <Card>
           <CardHeader className="pb-3 sm:pb-4">
             <CardTitle className="text-base sm:text-lg">交易列表</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              {isLoading ? "加载中..." : `共 ${transactions.length} 条交易`}
-            </CardDescription>
+            <CardDescription className="text-xs sm:text-sm">共 {summaryStats.totalTransactions} 条交易</CardDescription>
           </CardHeader>
-          <CardContent className="p-0 sm:p-6">
-            {/* 桌面版表格 */}
-            <div className="hidden sm:block overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs sm:text-sm">交易哈希</TableHead>
-                    <TableHead className="text-xs sm:text-sm">链</TableHead>
-                    <TableHead className="text-xs sm:text-sm">类型</TableHead>
-                    <TableHead className="text-xs sm:text-sm text-right">金额 (USDC)</TableHead>
-                    <TableHead className="text-xs sm:text-sm">时间</TableHead>
-                    <TableHead className="text-xs sm:text-sm">状态</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((tx) => (
-                    <TableRow key={tx.id} className="hover:bg-slate-50">
-                      <TableCell className="font-mono text-xs sm:text-sm truncate max-w-[120px]">
-                        <TxHashLink txHash={tx.txHash} chainId={tx.chainId} />
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm">{getChainName(tx.chainId)}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        <Badge className={`${getTransactionTypeColor(tx.type)} text-xs`}>
-                          {tx.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right text-xs sm:text-sm font-medium">{parseFloat(tx.amount || "0").toLocaleString()}</TableCell>
-                      <TableCell className="text-xs sm:text-sm whitespace-nowrap">{format(new Date(tx.timestamp), "MM-dd HH:mm")}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        <Badge variant="outline" className="text-xs">{tx.status}</Badge>
-                      </TableCell>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-8 text-slate-500">加载中...</div>
+            ) : transactions.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">暂无数据</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="text-xs sm:text-sm">
+                      <TableHead>交易哈希</TableHead>
+                      <TableHead>链</TableHead>
+                      <TableHead>类型</TableHead>
+                      <TableHead>金额 (USDC)</TableHead>
+                      <TableHead>时间</TableHead>
+                      <TableHead>状态</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* 手机版卡片列表 */}
-            <div className="sm:hidden space-y-3">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="border border-slate-200 rounded-lg p-4 bg-gradient-to-br from-slate-50 to-white shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-center mb-3 pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${getTransactionTypeColor(tx.type)} text-xs font-semibold`}>
-                        {tx.type.replace('_', ' ')}
-                      </Badge>
-                      <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                        {getChainName(tx.chainId)}
-                      </span>
-                    </div>
-                    <Badge variant="outline" className="text-xs text-slate-600">{tx.status}</Badge>
-                  </div>
-
-                  <div className="mb-3">
-                    <p className="text-xs text-slate-500 mb-1.5 font-medium">交易哈希</p>
-                    <button
-                      onClick={() => window.open(getExplorerUrl(tx.chainId, tx.txHash), '_blank')}
-                      className="w-full px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-blue-700 font-mono text-xs font-semibold transition-colors flex items-center justify-between"
-                    >
-                      <span className="truncate">{tx.txHash.slice(0, 20)}...</span>
-                      <span className="ml-2 text-blue-500 flex-shrink-0">→</span>
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-white rounded border border-slate-100 p-2.5">
-                      <p className="text-xs text-slate-500 mb-1 font-medium">金额</p>
-                      <p className="text-sm font-bold text-slate-900">{parseFloat(tx.amount || "0").toLocaleString()}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">USDC</p>
-                    </div>
-                    <div className="bg-white rounded border border-slate-100 p-2.5">
-                      <p className="text-xs text-slate-500 mb-1 font-medium">时间</p>
-                      <p className="text-sm font-bold text-slate-900">{format(new Date(tx.timestamp), "MM-dd")}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{format(new Date(tx.timestamp), "HH:mm")}</p>
-                    </div>
-                  </div>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((tx) => (
+                      <TableRow key={tx.id} className="text-xs sm:text-sm">
+                        <TableCell><TxHashLink txHash={tx.txHash} chainId={tx.chainId} /></TableCell>
+                        <TableCell>{getChainName(tx.chainId)}</TableCell>
+                        <TableCell><Badge className={getTransactionTypeColor(tx.type)}>{TRANSACTION_TYPES[tx.type as keyof typeof TRANSACTION_TYPES]}</Badge></TableCell>
+                        <TableCell>{parseFloat(tx.amount.toString()).toLocaleString()}</TableCell>
+                        <TableCell>{format(new Date(tx.timestamp), "MM-dd HH:mm")}</TableCell>
+                        <TableCell><Badge variant="outline">{tx.status}</Badge></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+            {transactions.length > 0 && (
+              <div className="flex justify-between items-center mt-4 text-xs sm:text-sm">
+                <span className="text-slate-600">显示 {page * pageSize + 1}-{Math.min((page + 1) * pageSize, summaryStats.totalTransactions)} / {summaryStats.totalTransactions}</span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(Math.max(0, page - 1))}
+                    disabled={page === 0}
+                  >
+                    上一页
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(page + 1)}
+                    disabled={(page + 1) * pageSize >= summaryStats.totalTransactions}
+                  >
+                    下一页
+                  </Button>
                 </div>
-              ))}
-            </div>
-
-            {transactions.length === 0 && !isLoading && (
-              <div className="text-center py-8 sm:py-12">
-                <p className="text-slate-500 text-sm sm:text-base">暂无交易数据</p>
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* 分页 */}
-        <div className="flex justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(Math.max(0, page - 1))}
-            disabled={page === 0}
-            className="text-xs sm:text-sm"
-          >
-            上一页
-          </Button>
-          <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm text-slate-600">第 {page + 1} 页</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(page + 1)}
-            disabled={transactions.length < pageSize}
-            className="text-xs sm:text-sm"
-          >
-            下一页
-          </Button>
-        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { getTransactionByHash, getTransactions, getStatistics, getAlertConfig } from "./db";
+import { getTransactionByHash, getTransactions, getStatistics, getAlertConfig, getTransactionsSummary } from "./db";
 import { eventListenerRouter } from "./eventListenerRouter";
 
 export const appRouter = router({
@@ -63,6 +63,23 @@ export const appRouter = router({
           date: input.date,
           chainId: input.chainId,
           type: input.type,
+        });
+      }),
+
+    // Get transactions summary (total counts and amounts across all data)
+    getSummary: publicProcedure
+      .input(z.object({
+        chainId: z.number().optional(),
+        type: z.string().optional(),
+        startTime: z.date().optional(),
+        endTime: z.date().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await getTransactionsSummary({
+          chainId: input.chainId,
+          type: input.type,
+          startTime: input.startTime,
+          endTime: input.endTime,
         });
       }),
 

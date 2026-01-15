@@ -139,3 +139,7 @@
 - [x] 修复 Dashboard 分页问题（pageSize 20 → 100）
 - [x] 修复 HistoryTracker 分页问题（pageSize 20 → 100）
 - [x] 确保所有 66 条交易都能显示在列表中
+- [x] 修复统计数据显示问题（显示全局总和而非当前页面总和）
+  - 添加 getTransactionsSummary 后端函数
+  - 添加 getSummary tRPC 接口
+  - 修改 Dashboard 前端使用全局统计

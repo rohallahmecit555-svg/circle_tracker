@@ -171,6 +171,85 @@ export async function getStatistics(filters: {
   return result;
 }
 
+export async function getTransactionsSummary(filters: {
+  chainId?: number;
+  type?: string;
+  startTime?: Date;
+  endTime?: Date;
+}) {
+  const db = await getDb();
+  if (!db) return {
+    totalCount: 0,
+    totalAmount: 0,
+    mintCount: 0,
+    mintAmount: 0,
+    burnCount: 0,
+    burnAmount: 0,
+    cctpCount: 0,
+    cctpAmount: 0,
+  };
+  
+  const conditions = [];
+  
+  if (filters.chainId) {
+    conditions.push(eq(transactions.chainId, filters.chainId));
+  }
+  if (filters.type) {
+    conditions.push(eq(transactions.type, filters.type as any));
+  }
+  if (filters.startTime) {
+    conditions.push(gte(transactions.timestamp, filters.startTime));
+  }
+  if (filters.endTime) {
+    conditions.push(lte(transactions.timestamp, filters.endTime));
+  }
+  
+  const result = await db
+    .select({
+      type: transactions.type,
+      amount: transactions.amount,
+    })
+    .from(transactions)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+  
+  let totalCount = 0;
+  let totalAmount = 0;
+  let mintCount = 0;
+  let mintAmount = 0;
+  let burnCount = 0;
+  let burnAmount = 0;
+  let cctpCount = 0;
+  let cctpAmount = 0;
+  
+  for (const tx of result) {
+    totalCount++;
+    const amount = parseFloat(tx.amount.toString());
+    totalAmount += amount;
+    
+    if (tx.type === "CIRCLE_MINT") {
+      mintCount++;
+      mintAmount += amount;
+    } else if (tx.type === "CIRCLE_BURN") {
+      burnCount++;
+      burnAmount += amount;
+    } else if (tx.type === "CCTP_MINT" || tx.type === "CCTP_BURN") {
+      cctpCount++;
+      cctpAmount += amount;
+    }
+  }
+  
+  return {
+    totalCount,
+    totalAmount,
+    mintCount,
+    mintAmount,
+    burnCount,
+    burnAmount,
+    cctpCount,
+    cctpAmount,
+  };
+}
+
 export async function getAlertConfig(userId: number) {
   const db = await getDb();
   if (!db) return undefined;
