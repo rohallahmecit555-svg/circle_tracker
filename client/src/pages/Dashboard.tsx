@@ -74,7 +74,7 @@ export default function Dashboard() {
     searchHash: undefined,
   });
   const [page, setPage] = useState(0);
-  const pageSize = 20;
+  const pageSize = 100; // 增加到 100 条，确保一次性显示所有数据
 
   const { data: transactions = [], isLoading, refetch } = trpc.tracker.getTransactions.useQuery({
     chainId: filters.chainId ? parseInt(filters.chainId) : undefined,

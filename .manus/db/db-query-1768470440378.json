@@ -1,0 +1,16 @@
+{
+  "query": "SELECT COUNT(*) as total_count, \n       SUM(CASE WHEN type = 'CIRCLE_MINT' THEN 1 ELSE 0 END) as mint_count,\n       SUM(CASE WHEN type = 'CIRCLE_BURN' THEN 1 ELSE 0 END) as burn_count,\n       SUM(amount) as total_amount\nFROM transactions;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hMaZ9xp2zKPPmiL.root --database nmnc2rhS5H7jfGAqB8XvCi --execute SELECT COUNT(*) as total_count, \n       SUM(CASE WHEN type = 'CIRCLE_MINT' THEN 1 ELSE 0 END) as mint_count,\n       SUM(CASE WHEN type = 'CIRCLE_BURN' THEN 1 ELSE 0 END) as burn_count,\n       SUM(amount) as total_amount\nFROM transactions;",
+  "rows": [
+    {
+      "total_count": "66",
+      "mint_count": "44",
+      "burn_count": "22",
+      "total_amount": "39150448.000000"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_count\tmint_count\tburn_count\ttotal_amount\n66\t44\t22\t39150448.000000\n",
+  "stderr": "",
+  "execution_time_ms": 1556
+}

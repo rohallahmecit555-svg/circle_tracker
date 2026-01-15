@@ -1,0 +1,50 @@
+{
+  "query": "SELECT id, txHash, chainId, type, amount, timestamp FROM transactions LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hMaZ9xp2zKPPmiL.root --database nmnc2rhS5H7jfGAqB8XvCi --execute SELECT id, txHash, chainId, type, amount, timestamp FROM transactions LIMIT 5;",
+  "rows": [
+    {
+      "id": "90002",
+      "txHash": "0x8622c53fc206a13a42da48148fc931fe9c13dcf260455a74a55b8cc95fe21576",
+      "chainId": "1",
+      "type": "CIRCLE_MINT",
+      "amount": "1495.000000",
+      "timestamp": "2026-01-15 08:29:11"
+    },
+    {
+      "id": "90003",
+      "txHash": "0x94334298b4e9feefda63cd06bd04c7b4f9c75dc044ba4e06307e317973ac15bf",
+      "chainId": "1",
+      "type": "CIRCLE_BURN",
+      "amount": "115.000000",
+      "timestamp": "2026-01-15 08:29:11"
+    },
+    {
+      "id": "90007",
+      "txHash": "0x7c062e3fcb6a74bb49173a2400d67bfe964376c6e7a63ca5acaabaab3b01c744",
+      "chainId": "1",
+      "type": "CIRCLE_MINT",
+      "amount": "767.000000",
+      "timestamp": "2026-01-15 08:29:23"
+    },
+    {
+      "id": "90009",
+      "txHash": "0xebbbec00e4dde9790183a41fa2e06602194b30bfb8f55a2ed83040528d14f0f1",
+      "chainId": "1",
+      "type": "CIRCLE_MINT",
+      "amount": "50000.000000",
+      "timestamp": "2026-01-15 08:29:35"
+    },
+    {
+      "id": "90010",
+      "txHash": "0x9aa2373d010dc813248402767e7e7c4d6dc4dd40d78e8f1485f7c49dc486698a",
+      "chainId": "1",
+      "type": "CIRCLE_MINT",
+      "amount": "5912.000000",
+      "timestamp": "2026-01-15 08:29:35"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttxHash\tchainId\ttype\tamount\ttimestamp\n90002\t0x8622c53fc206a13a42da48148fc931fe9c13dcf260455a74a55b8cc95fe21576\t1\tCIRCLE_MINT\t1495.000000\t2026-01-15 08:29:11\n90003\t0x94334298b4e9feefda63cd06bd04c7b4f9c75dc044ba4e06307e317973ac15bf\t1\tCIRCLE_BURN\t115.000000\t2026-01-15 08:29:11\n90007\t0x7c062e3fcb6a74bb49173a2400d67bfe964376c6e7a63ca5acaabaab3b01c744\t1\tCIRCLE_MINT\t767.000000\t2026-01-15 08:29:23\n90009\t0xebbbec00e4dde9790183a41fa2e06602194b30bfb8f55a2ed83040528d14f0f1\t1\tCIRCLE_MINT\t50000.000000\t2026-01-15 08:29:35\n90010\t0x9aa2373d010dc813248402767e7e7c4d6dc4dd40d78e8f1485f7c49dc486698a\t1\tCIRCLE_MINT\t5912.000000\t2026-01-15 08:29:35\n",
+  "stderr": "",
+  "execution_time_ms": 1633
+}
