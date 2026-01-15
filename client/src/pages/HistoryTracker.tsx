@@ -39,6 +39,32 @@ const getTransactionTypeColor = (type: string) => {
   }
 };
 
+const getExplorerUrl = (chainId: number, txHash: string) => {
+  const explorers: Record<number, string> = {
+    1: "https://etherscan.io/tx",
+    8453: "https://basescan.org/tx",
+    42161: "https://arbiscan.io/tx",
+    137: "https://polygonscan.com/tx",
+    10: "https://optimistic.etherscan.io/tx",
+  };
+  const baseUrl = explorers[chainId] || "https://etherscan.io/tx";
+  return `${baseUrl}/${txHash}`;
+};
+
+const TxHashLink = ({ txHash, chainId }: { txHash: string; chainId: number }) => {
+  return (
+    <a
+      href={getExplorerUrl(chainId, txHash)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-mono text-xs sm:text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer truncate max-w-[120px] block"
+      title={txHash}
+    >
+      {txHash.slice(0, 10)}...
+    </a>
+  );
+};
+
 export default function HistoryTracker() {
   const [, setLocation] = useLocation();
   const [filters, setFilters] = useState<FilterState>({
@@ -112,31 +138,32 @@ export default function HistoryTracker() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        {/* 头部 */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLocation("/dashboard")}
-              className="gap-2"
+              className="gap-2 text-xs sm:text-sm"
             >
               <ArrowLeft className="w-4 h-4" />
               返回
             </Button>
-            <div>
-              <h1 className="text-4xl font-bold text-slate-900">历史事件追溯</h1>
-              <p className="text-slate-600 mt-2">查询和分析历史交易数据</p>
+            <div className="flex-1 sm:flex-none">
+              <h1 className="text-2xl sm:text-4xl font-bold text-slate-900">历史事件追溯</h1>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1">查询和分析历史交易数据</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetch()}
               disabled={isLoading}
-              className="gap-2"
+              className="gap-2 text-xs sm:text-sm flex-1 sm:flex-none"
             >
               <RefreshCw className="w-4 h-4" />
               刷新
@@ -145,19 +172,19 @@ export default function HistoryTracker() {
               size="sm"
               onClick={handleExport}
               disabled={transactions.length === 0}
-              className="gap-2"
+              className="gap-2 text-xs sm:text-sm flex-1 sm:flex-none"
             >
               <Download className="w-4 h-4" />
-              导出 Excel
+              导出
             </Button>
           </div>
         </div>
 
         {/* 快速日期选择 */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Calendar className="w-4 sm:w-5 h-4 sm:h-5" />
               快速日期选择
             </CardTitle>
           </CardHeader>
@@ -172,6 +199,7 @@ export default function HistoryTracker() {
                 }
                 size="sm"
                 onClick={() => handleQuickDateRange(7)}
+                className="text-xs sm:text-sm"
               >
                 最近 7 天
               </Button>
@@ -184,6 +212,7 @@ export default function HistoryTracker() {
                 }
                 size="sm"
                 onClick={() => handleQuickDateRange(30)}
+                className="text-xs sm:text-sm"
               >
                 最近 30 天
               </Button>
@@ -196,6 +225,7 @@ export default function HistoryTracker() {
                 }
                 size="sm"
                 onClick={() => handleQuickDateRange(90)}
+                className="text-xs sm:text-sm"
               >
                 最近 90 天
               </Button>
@@ -208,6 +238,7 @@ export default function HistoryTracker() {
                 }
                 size="sm"
                 onClick={() => handleQuickDateRange(365)}
+                className="text-xs sm:text-sm"
               >
                 最近 1 年
               </Button>
@@ -216,58 +247,58 @@ export default function HistoryTracker() {
         </Card>
 
         {/* 统计信息 */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">总交易数</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">总交易数</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{summaryStats.totalTransactions}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-xl sm:text-3xl font-bold text-slate-900">{summaryStats.totalTransactions}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">总 Mint 金额</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">总 Mint 金额</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">${summaryStats.totalMint.toLocaleString()}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-lg sm:text-2xl font-bold text-green-600">${summaryStats.totalMint.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">总 Burn 金额</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">总 Burn 金额</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">${summaryStats.totalBurn.toLocaleString()}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-lg sm:text-2xl font-bold text-red-600">${summaryStats.totalBurn.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">CCTP 转账</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">CCTP 转账</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">${summaryStats.totalCCTPTransfers.toLocaleString()}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-lg sm:text-2xl font-bold text-blue-600">${summaryStats.totalCCTPTransfers.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">平均金额</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">平均金额</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">${summaryStats.avgAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-lg sm:text-2xl font-bold text-purple-600">${summaryStats.avgAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* 高级过滤器 */}
         <Card>
-          <CardHeader>
-            <CardTitle>高级过滤</CardTitle>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">高级过滤</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">开始日期</label>
+                <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">开始日期</label>
                 <Input
                   type="date"
                   value={filters.startDate ? format(filters.startDate, "yyyy-MM-dd") : ""}
@@ -276,10 +307,11 @@ export default function HistoryTracker() {
                     setFilters({ ...filters, startDate: date });
                     setPage(0);
                   }}
+                  className="text-xs sm:text-sm"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">结束日期</label>
+                <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">结束日期</label>
                 <Input
                   type="date"
                   value={filters.endDate ? format(filters.endDate, "yyyy-MM-dd") : ""}
@@ -288,15 +320,16 @@ export default function HistoryTracker() {
                     setFilters({ ...filters, endDate: date });
                     setPage(0);
                   }}
+                  className="text-xs sm:text-sm"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">链</label>
+                <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">链</label>
                 <Select value={filters.chainId || "all"} onValueChange={(value) => {
                   setFilters({ ...filters, chainId: value === "all" ? undefined : value });
                   setPage(0);
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue placeholder="所有链" />
                   </SelectTrigger>
                   <SelectContent>
@@ -310,12 +343,12 @@ export default function HistoryTracker() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">交易类型</label>
+                <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">交易类型</label>
                 <Select value={filters.type || "all"} onValueChange={(value) => {
                   setFilters({ ...filters, type: value === "all" ? undefined : value });
                   setPage(0);
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue placeholder="所有类型" />
                   </SelectTrigger>
                   <SelectContent>
@@ -340,7 +373,7 @@ export default function HistoryTracker() {
                     });
                     setPage(0);
                   }}
-                  className="w-full"
+                  className="w-full text-xs sm:text-sm"
                 >
                   重置过滤器
                 </Button>
@@ -350,70 +383,58 @@ export default function HistoryTracker() {
         </Card>
 
         {/* 交易列表 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>交易列表</CardTitle>
-            <CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">交易列表</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               {filters.startDate && filters.endDate
                 ? `${format(filters.startDate, "yyyy-MM-dd")} 至 ${format(filters.endDate, "yyyy-MM-dd")} 的交易记录`
                 : "显示交易记录"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
+          <CardContent className="p-0 sm:p-6">
+            {/* 桌面版表格 */}
+            <div className="hidden sm:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>交易哈希</TableHead>
-                    <TableHead>链</TableHead>
-                    <TableHead>类型</TableHead>
-                    <TableHead className="text-right">金额 (USDC)</TableHead>
-                    <TableHead>时间</TableHead>
-                    <TableHead>状态</TableHead>
+                    <TableHead className="text-xs sm:text-sm">交易哈希</TableHead>
+                    <TableHead className="text-xs sm:text-sm">链</TableHead>
+                    <TableHead className="text-xs sm:text-sm">类型</TableHead>
+                    <TableHead className="text-xs sm:text-sm text-right">金额 (USDC)</TableHead>
+                    <TableHead className="text-xs sm:text-sm">时间</TableHead>
+                    <TableHead className="text-xs sm:text-sm">状态</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={6} className="text-center py-8 text-slate-500 text-sm">
                         加载中...
                       </TableCell>
                     </TableRow>
                   ) : transactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={6} className="text-center py-8 text-slate-500 text-sm">
                         暂无交易记录
                       </TableCell>
                     </TableRow>
                   ) : (
                     transactions.map((tx) => (
-                      <TableRow key={tx.id}>
-                        <TableCell className="font-mono text-sm">
-                          <a
-                            href={`https://etherscan.io/tx/${tx.txHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            {tx.txHash.slice(0, 10)}...{tx.txHash.slice(-8)}
-                          </a>
+                      <TableRow key={tx.id} className="hover:bg-slate-50">
+                        <TableCell className="font-mono text-xs sm:text-sm truncate max-w-[120px]">
+                          <TxHashLink txHash={tx.txHash} chainId={tx.chainId} />
                         </TableCell>
-                        <TableCell>{getChainName(tx.chainId)}</TableCell>
-                        <TableCell>
-                          <Badge className={getTransactionTypeColor(tx.type)}>
-                            {TRANSACTION_TYPES[tx.type as keyof typeof TRANSACTION_TYPES]}
+                        <TableCell className="text-xs sm:text-sm">{getChainName(tx.chainId)}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          <Badge className={`${getTransactionTypeColor(tx.type)} text-xs`}>
+                            {tx.type}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {parseFloat(tx.amount.toString()).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {format(new Date(tx.timestamp), "yyyy-MM-dd HH:mm")}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={tx.status === "CONFIRMED" ? "default" : "secondary"}>
-                            {tx.status === "CONFIRMED" ? "已确认" : tx.status === "PENDING" ? "待确认" : "失败"}
-                          </Badge>
+                        <TableCell className="text-right text-xs sm:text-sm font-medium">{parseFloat(tx.amount.toString()).toLocaleString()}</TableCell>
+                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">{format(new Date(tx.timestamp), "MM-dd HH:mm")}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          <Badge variant="outline" className="text-xs">{tx.status}</Badge>
                         </TableCell>
                       </TableRow>
                     ))
@@ -422,32 +443,85 @@ export default function HistoryTracker() {
               </Table>
             </div>
 
-            {/* 分页 */}
-            <div className="flex justify-between items-center mt-6">
-              <div className="text-sm text-slate-600">
-                第 {page + 1} 页 (每页 {pageSize} 条)
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                >
-                  上一页
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={transactions.length < pageSize}
-                >
-                  下一页
-                </Button>
-              </div>
+            {/* 手机版卡片列表 */}
+            <div className="sm:hidden space-y-3">
+              {isLoading ? (
+                <div className="text-center py-8 text-slate-500 text-sm">
+                  加载中...
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="text-center py-8 text-slate-500 text-sm">
+                  暂无交易记录
+                </div>
+              ) : (
+                transactions.map((tx) => (
+                  <div key={tx.id} className="border border-slate-200 rounded-lg p-4 bg-gradient-to-br from-slate-50 to-white shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-center mb-3 pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Badge className={`${getTransactionTypeColor(tx.type)} text-xs font-semibold`}>
+                          {tx.type.replace(/_/g, ' ')}
+                        </Badge>
+                        <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                          {getChainName(tx.chainId)}
+                        </span>
+                      </div>
+                      <Badge variant="outline" className="text-xs text-slate-600">{tx.status}</Badge>
+                    </div>
+
+                    <div className="mb-3">
+                      <p className="text-xs text-slate-500 mb-1.5 font-medium">交易哈希</p>
+                      <button
+                        onClick={() => window.open(getExplorerUrl(tx.chainId, tx.txHash), '_blank')}
+                        className="w-full px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-blue-700 font-mono text-xs font-semibold transition-colors flex items-center justify-between"
+                      >
+                        <span className="truncate">{tx.txHash.slice(0, 20)}...</span>
+                        <span className="ml-2 text-blue-500 flex-shrink-0">→</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white rounded border border-slate-100 p-2.5">
+                        <p className="text-xs text-slate-500 mb-1 font-medium">金额</p>
+                        <p className="text-sm font-bold text-slate-900">{parseFloat(tx.amount.toString()).toLocaleString()}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">USDC</p>
+                      </div>
+                      <div className="bg-white rounded border border-slate-100 p-2.5">
+                        <p className="text-xs text-slate-500 mb-1 font-medium">时间</p>
+                        <p className="text-sm font-bold text-slate-900">{format(new Date(tx.timestamp), "MM-dd")}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{format(new Date(tx.timestamp), "HH:mm")}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* 分页 */}
+        <div className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(Math.max(0, page - 1))}
+            disabled={page === 0}
+            className="text-xs sm:text-sm"
+          >
+            上一页
+          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm text-slate-600">第 {page + 1} 页</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(page + 1)}
+            disabled={transactions.length < pageSize}
+            className="text-xs sm:text-sm"
+          >
+            下一页
+          </Button>
+        </div>
       </div>
     </div>
   );
