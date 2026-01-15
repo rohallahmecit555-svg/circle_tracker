@@ -40,6 +40,32 @@ const getTransactionTypeColor = (type: string) => {
   }
 };
 
+const getExplorerUrl = (chainId: number, txHash: string) => {
+  const explorers: Record<number, string> = {
+    1: "https://etherscan.io/tx",
+    8453: "https://basescan.org/tx",
+    42161: "https://arbiscan.io/tx",
+    137: "https://polygonscan.com/tx",
+    10: "https://optimistic.etherscan.io/tx",
+  };
+  const baseUrl = explorers[chainId] || "https://etherscan.io/tx";
+  return `${baseUrl}/${txHash}`;
+};
+
+const TxHashLink = ({ txHash, chainId }: { txHash: string; chainId: number }) => {
+  return (
+    <a
+      href={getExplorerUrl(chainId, txHash)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-mono text-xs sm:text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer truncate max-w-[120px] block"
+      title={txHash}
+    >
+      {txHash.slice(0, 10)}...
+    </a>
+  );
+};
+
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [filters, setFilters] = useState<FilterState>({
@@ -267,7 +293,9 @@ export default function Dashboard() {
                 <TableBody>
                   {transactions.map((tx) => (
                     <TableRow key={tx.id} className="hover:bg-slate-50">
-                      <TableCell className="font-mono text-xs sm:text-sm truncate max-w-[120px]">{tx.txHash.slice(0, 10)}...</TableCell>
+                      <TableCell className="font-mono text-xs sm:text-sm truncate max-w-[120px]">
+                        <TxHashLink txHash={tx.txHash} chainId={tx.chainId} />
+                      </TableCell>
                       <TableCell className="text-xs sm:text-sm">{getChainName(tx.chainId)}</TableCell>
                       <TableCell className="text-xs sm:text-sm">
                         <Badge className={`${getTransactionTypeColor(tx.type)} text-xs`}>
@@ -291,7 +319,9 @@ export default function Dashboard() {
                 <div key={tx.id} className="border rounded-lg p-3 bg-white">
                   <div className="flex justify-between items-start gap-2 mb-2">
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-xs text-slate-600 truncate">{tx.txHash.slice(0, 16)}...</p>
+                      <div className="truncate">
+                        <TxHashLink txHash={tx.txHash} chainId={tx.chainId} />
+                      </div>
                       <p className="text-sm font-medium text-slate-900 mt-1">{getChainName(tx.chainId)}</p>
                     </div>
                     <Badge className={`${getTransactionTypeColor(tx.type)} text-xs flex-shrink-0`}>
