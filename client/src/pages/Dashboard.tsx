@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+'use client';
+
+import { useState, useMemo } from 'react';
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,147 +50,149 @@ export default function Dashboard() {
   const [page, setPage] = useState(0);
   const pageSize = 20;
 
-  const { data: transactions = [], isLoading, refetch } = trpc.tracker.getTransactions.useQuery(
-    {
-      chainId: filters.chainId ? parseInt(filters.chainId) : undefined,
-      type: filters.type,
-      limit: pageSize,
-      offset: page * pageSize,
-    },
-    { enabled: true }
-  );
-
-  const { data: statistics = [] } = trpc.tracker.getStatistics.useQuery(
-    {
-      date: format(new Date(), "yyyy-MM-dd"),
-    },
-    { enabled: true }
-  );
+  const { data: transactions = [], isLoading, refetch } = trpc.tracker.getTransactions.useQuery({
+    chainId: filters.chainId ? parseInt(filters.chainId) : undefined,
+    type: filters.type,
+    limit: pageSize,
+    offset: page * pageSize,
+  });
 
   const summaryStats = useMemo(() => {
-    const stats = {
-      totalMint: 0,
-      totalBurn: 0,
-      totalCCTPTransfers: 0,
-      totalTransactions: transactions.length,
+    let totalTransactions = 0;
+    let totalMint = 0;
+    let totalBurn = 0;
+    let totalCCTPTransfers = 0;
+
+    for (const tx of transactions) {
+      totalTransactions++;
+      const amount = parseFloat(tx.amount || "0");
+      if (tx.type === "CIRCLE_MINT") {
+        totalMint += amount;
+      } else if (tx.type === "CIRCLE_BURN") {
+        totalBurn += amount;
+      } else if (tx.type === "CCTP_MINT" || tx.type === "CCTP_BURN") {
+        totalCCTPTransfers += amount;
+      }
+    }
+
+    return {
+      totalTransactions,
+      totalMint,
+      totalBurn,
+      totalCCTPTransfers,
     };
-
-    transactions.forEach(tx => {
-      const amount = parseFloat(tx.amount.toString());
-      if (tx.type === "CIRCLE_MINT") stats.totalMint += amount;
-      if (tx.type === "CIRCLE_BURN") stats.totalBurn += amount;
-      if (tx.type === "CCTP_BURN" || tx.type === "CCTP_MINT") stats.totalCCTPTransfers += amount;
-    });
-
-    return stats;
   }, [transactions]);
 
   const handleExport = () => {
     const data = transactions.map(tx => ({
       "交易哈希": tx.txHash,
       "链": getChainName(tx.chainId),
-      "类型": TRANSACTION_TYPES[tx.type as keyof typeof TRANSACTION_TYPES],
-      "金额 (USDC)": tx.amount.toString(),
-      "发送方": tx.fromAddress,
-      "接收方": tx.toAddress,
+      "类型": tx.type,
+      "金额 (USDC)": tx.amount,
       "时间": format(new Date(tx.timestamp), "yyyy-MM-dd HH:mm:ss"),
       "状态": tx.status,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "交易");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "交易数据");
     XLSX.writeFile(workbook, `circle-tracker-${format(new Date(), "yyyy-MM-dd-HHmmss")}.xlsx`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900">Circle 链上行为追踪器</h1>
-            <p className="text-slate-600 mt-2">实时监控 USDC Mint/Burn 和 CCTP 跨链结算</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-3 py-4 sm:px-6 sm:py-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        {/* 头部 */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 break-words">Circle 链上行为追踪器</h1>
+            <p className="text-sm sm:text-base text-slate-600 mt-1 sm:mt-2 break-words">实时监控 USDC Mint/Burn 和 CCTP 跨链结算</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setLocation("/history")}
-              className="gap-2"
+              className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm"
             >
-              <History className="w-4 h-4" />
-              历史追溯
+              <History className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">历史追溯</span>
+              <span className="sm:hidden">历史</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetch()}
               disabled={isLoading}
-              className="gap-2"
+              className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm"
             >
-              <RefreshCw className="w-4 h-4" />
-              刷新
+              <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">刷新</span>
+              <span className="sm:hidden">刷新</span>
             </Button>
             <Button
               size="sm"
               onClick={handleExport}
               disabled={transactions.length === 0}
-              className="gap-2"
+              className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm"
             >
-              <Download className="w-4 h-4" />
-              导出 Excel
+              <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">导出 Excel</span>
+              <span className="sm:hidden">导出</span>
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">总交易数</CardTitle>
+        {/* 统计卡片 */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600 truncate">总交易数</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{summaryStats.totalTransactions}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-xl sm:text-3xl font-bold text-slate-900">{summaryStats.totalTransactions}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">总 Mint 金额</CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600 truncate">总 Mint 金额</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">${summaryStats.totalMint.toLocaleString()}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-lg sm:text-3xl font-bold text-green-600 truncate">${summaryStats.totalMint.toLocaleString()}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">总 Burn 金额</CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600 truncate">总 Burn 金额</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-600">${summaryStats.totalBurn.toLocaleString()}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-lg sm:text-3xl font-bold text-red-600 truncate">${summaryStats.totalBurn.toLocaleString()}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">CCTP 转账金额</CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600 truncate">CCTP 转账</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">${summaryStats.totalCCTPTransfers.toLocaleString()}</div>
+            <CardContent className="pb-2 sm:pb-4">
+              <div className="text-lg sm:text-3xl font-bold text-blue-600 truncate">${summaryStats.totalCCTPTransfers.toLocaleString()}</div>
             </CardContent>
           </Card>
         </div>
 
+        {/* 过滤器 */}
         <Card>
-          <CardHeader>
-            <CardTitle>过滤器</CardTitle>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">过滤器</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">链</label>
+                <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">链</label>
                 <Select value={filters.chainId || "all"} onValueChange={(value) => {
                   setFilters({ ...filters, chainId: value === "all" ? undefined : value });
                   setPage(0);
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue placeholder="所有链" />
                   </SelectTrigger>
                   <SelectContent>
@@ -201,13 +205,14 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
+
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">交易类型</label>
+                <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">交易类型</label>
                 <Select value={filters.type || "all"} onValueChange={(value) => {
                   setFilters({ ...filters, type: value === "all" ? undefined : value });
                   setPage(0);
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue placeholder="所有类型" />
                   </SelectTrigger>
                   <SelectContent>
@@ -220,124 +225,128 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">搜索交易哈希</label>
+
+              <div className="sm:col-span-2 lg:col-span-2">
+                <label className="text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2 block">交易哈希</label>
                 <Input
-                  placeholder="0x..."
+                  placeholder="输入交易哈希..."
                   value={filters.searchHash || ""}
-                  onChange={(e) => setFilters({ ...filters, searchHash: e.target.value })}
-                  className="font-mono text-sm"
-                />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFilters({ chainId: undefined, type: undefined, searchHash: undefined });
+                  onChange={(e) => {
+                    setFilters({ ...filters, searchHash: e.target.value });
                     setPage(0);
                   }}
-                  className="w-full"
-                >
-                  重置过滤器
-                </Button>
+                  className="text-xs sm:text-sm"
+                />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>交易列表</CardTitle>
-            <CardDescription>显示 {transactions.length} 条交易记录</CardDescription>
+        {/* 交易表格 */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">交易列表</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              {isLoading ? "加载中..." : `共 ${transactions.length} 条交易`}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
+          <CardContent className="p-0 sm:p-6">
+            {/* 桌面版表格 */}
+            <div className="hidden sm:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>交易哈希</TableHead>
-                    <TableHead>链</TableHead>
-                    <TableHead>类型</TableHead>
-                    <TableHead className="text-right">金额 (USDC)</TableHead>
-                    <TableHead>时间</TableHead>
-                    <TableHead>状态</TableHead>
+                    <TableHead className="text-xs sm:text-sm">交易哈希</TableHead>
+                    <TableHead className="text-xs sm:text-sm">链</TableHead>
+                    <TableHead className="text-xs sm:text-sm">类型</TableHead>
+                    <TableHead className="text-xs sm:text-sm text-right">金额 (USDC)</TableHead>
+                    <TableHead className="text-xs sm:text-sm">时间</TableHead>
+                    <TableHead className="text-xs sm:text-sm">状态</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-slate-500">
-                        加载中...
+                  {transactions.map((tx) => (
+                    <TableRow key={tx.id} className="hover:bg-slate-50">
+                      <TableCell className="font-mono text-xs sm:text-sm truncate max-w-[120px]">{tx.txHash.slice(0, 10)}...</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{getChainName(tx.chainId)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        <Badge className={`${getTransactionTypeColor(tx.type)} text-xs`}>
+                          {tx.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-xs sm:text-sm font-medium">{parseFloat(tx.amount || "0").toLocaleString()}</TableCell>
+                      <TableCell className="text-xs sm:text-sm whitespace-nowrap">{format(new Date(tx.timestamp), "MM-dd HH:mm")}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        <Badge variant="outline" className="text-xs">{tx.status}</Badge>
                       </TableCell>
                     </TableRow>
-                  ) : transactions.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-slate-500">
-                        暂无交易记录
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    transactions.map((tx) => (
-                      <TableRow key={tx.id}>
-                        <TableCell className="font-mono text-sm">
-                          <a
-                            href={`https://etherscan.io/tx/${tx.txHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            {tx.txHash.slice(0, 10)}...{tx.txHash.slice(-8)}
-                          </a>
-                        </TableCell>
-                        <TableCell>{getChainName(tx.chainId)}</TableCell>
-                        <TableCell>
-                          <Badge className={getTransactionTypeColor(tx.type)}>
-                            {TRANSACTION_TYPES[tx.type as keyof typeof TRANSACTION_TYPES]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {parseFloat(tx.amount.toString()).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {format(new Date(tx.timestamp), "yyyy-MM-dd HH:mm")}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={tx.status === "CONFIRMED" ? "default" : "secondary"}>
-                            {tx.status === "CONFIRMED" ? "已确认" : tx.status === "PENDING" ? "待确认" : "失败"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  ))}
                 </TableBody>
               </Table>
             </div>
 
-            <div className="flex justify-between items-center mt-6">
-              <div className="text-sm text-slate-600">
-                第 {page + 1} 页 (每页 {pageSize} 条)
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                >
-                  上一页
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={transactions.length < pageSize}
-                >
-                  下一页
-                </Button>
-              </div>
+            {/* 手机版卡片列表 */}
+            <div className="sm:hidden space-y-3">
+              {transactions.map((tx) => (
+                <div key={tx.id} className="border rounded-lg p-3 bg-white">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-xs text-slate-600 truncate">{tx.txHash.slice(0, 16)}...</p>
+                      <p className="text-sm font-medium text-slate-900 mt-1">{getChainName(tx.chainId)}</p>
+                    </div>
+                    <Badge className={`${getTransactionTypeColor(tx.type)} text-xs flex-shrink-0`}>
+                      {tx.type}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div>
+                      <p className="text-xs text-slate-600">金额</p>
+                      <p className="text-sm font-bold text-slate-900">{parseFloat(tx.amount || "0").toLocaleString()} USDC</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-600">时间</p>
+                      <p className="text-sm font-medium text-slate-900">{format(new Date(tx.timestamp), "MM-dd HH:mm")}</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <Badge variant="outline" className="text-xs">{tx.status}</Badge>
+                  </div>
+                </div>
+              ))}
             </div>
+
+            {transactions.length === 0 && !isLoading && (
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-slate-500 text-sm sm:text-base">暂无交易数据</p>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* 分页 */}
+        <div className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(Math.max(0, page - 1))}
+            disabled={page === 0}
+            className="text-xs sm:text-sm"
+          >
+            上一页
+          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm text-slate-600">第 {page + 1} 页</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(page + 1)}
+            disabled={transactions.length < pageSize}
+            className="text-xs sm:text-sm"
+          >
+            下一页
+          </Button>
+        </div>
       </div>
     </div>
   );

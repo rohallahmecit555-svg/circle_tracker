@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COUNT(*) as total, type, SUM(CAST(amount AS DECIMAL(20,2))) as total_amount FROM transactions GROUP BY type;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hMaZ9xp2zKPPmiL.root --database nmnc2rhS5H7jfGAqB8XvCi --execute SELECT COUNT(*) as total, type, SUM(CAST(amount AS DECIMAL(20,2))) as total_amount FROM transactions GROUP BY type;",
+  "rows": [
+    {
+      "total": "1",
+      "type": "CIRCLE_BURN",
+      "total_amount": "211217.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\ttype\ttotal_amount\n1\tCIRCLE_BURN\t211217.00\n",
+  "stderr": "",
+  "execution_time_ms": 1623
+}
