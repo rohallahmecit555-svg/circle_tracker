@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import HistoryTracker from "./pages/HistoryTracker";
+import RealTimeMonitor from "./pages/RealTimeMonitor";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/history" component={HistoryTracker} />
+      <Route path="/real-time" component={RealTimeMonitor} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

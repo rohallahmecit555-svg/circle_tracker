@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, BarChart3, Zap } from "lucide-react";
+import { ArrowRight, BarChart3, Zap, Database } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Home() {
@@ -20,42 +20,63 @@ export default function Home() {
           </p>
           <Button
             size="lg"
-            onClick={() => setLocation("/dashboard")}
+            onClick={() => setLocation("/real-time")}
             className="gap-2 bg-blue-600 hover:bg-blue-700"
           >
-            打开仪表板
+            开始监听
             <ArrowRight className="w-5 h-5" />
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-          <Card className="bg-slate-800 border-slate-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+          <Card 
+            className="bg-slate-800 border-slate-700 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setLocation("/real-time")}
+          >
             <CardHeader>
               <Zap className="w-8 h-8 text-blue-400 mb-2" />
-              <CardTitle className="text-white">实时监控</CardTitle>
+              <CardTitle className="text-white">实时监听</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription className="text-slate-400">
-                实时监听 USDC 和 CCTP 合约事件，跨越以太坊、Base、Arbitrum 等多条 EVM 链。
+                查询链上历史数据或启动实时监听器，捕获真实的 USDC Mint/Burn 交易。
               </CardDescription>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700">
+          <Card 
+            className="bg-slate-800 border-slate-700 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setLocation("/dashboard")}
+          >
             <CardHeader>
               <BarChart3 className="w-8 h-8 text-green-400 mb-2" />
-              <CardTitle className="text-white">高级分析</CardTitle>
+              <CardTitle className="text-white">仪表板</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription className="text-slate-400">
-                分析交易模式、可视化 Mint/Burn 趋势、追踪跨链流量，支持多维度过滤。
+                查看实时交易数据、统计信息和过滤器，支持导出为 Excel。
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="bg-slate-800 border-slate-700 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setLocation("/history")}
+          >
+            <CardHeader>
+              <Database className="w-8 h-8 text-purple-400 mb-2" />
+              <CardTitle className="text-white">历史追踪</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-slate-400">
+                按日期范围和链类型查询历史交易，进行时间段对比分析。
               </CardDescription>
             </CardContent>
           </Card>
 
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
-              <ArrowRight className="w-8 h-8 text-purple-400 mb-2" />
+              <ArrowRight className="w-8 h-8 text-orange-400 mb-2" />
               <CardTitle className="text-white">数据导出</CardTitle>
             </CardHeader>
             <CardContent>
@@ -64,6 +85,27 @@ export default function Home() {
               </CardDescription>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mt-20 bg-slate-800 border border-slate-700 rounded-lg p-8">
+          <h2 className="text-2xl font-bold text-white mb-4">支持的区块链</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              "Ethereum",
+              "Base",
+              "Arbitrum",
+              "Polygon",
+              "Optimism",
+              "Avalanche",
+            ].map((chain) => (
+              <div
+                key={chain}
+                className="bg-slate-700 rounded-lg p-4 text-center text-slate-300 hover:bg-slate-600 transition-colors"
+              >
+                {chain}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
