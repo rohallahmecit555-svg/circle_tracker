@@ -10,42 +10,42 @@ export const SUPPORTED_CHAINS = {
   ethereum: {
     id: 1,
     name: 'Ethereum',
-    rpcUrl: 'https://eth.llamarpc.com',
+    rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2/Noqzt16hckcVCOserEz-2',
     usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     cctp: '0xBd3fa81B58ba92a82136038B25aDec7066e1C915',
   },
   base: {
     id: 8453,
     name: 'Base',
-    rpcUrl: 'https://base.llamarpc.com',
+    rpcUrl: 'https://base.publicnode.com',
     usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     cctp: '0x0c7E7eAb261d49dfaD82791F7995Cd4d7e32ec59',
   },
   arbitrum: {
     id: 42161,
     name: 'Arbitrum',
-    rpcUrl: 'https://arbitrum.llamarpc.com',
+    rpcUrl: 'https://arbitrum.publicnode.com',
     usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     cctp: '0x19330d10B9afbAF0D5C3B6d84e17675d1b1dC0a7',
   },
   polygon: {
     id: 137,
     name: 'Polygon',
-    rpcUrl: 'https://polygon.llamarpc.com',
+    rpcUrl: 'https://polygon.publicnode.com',
     usdc: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
     cctp: '0x9baF7a1cB1d1e0be1A86f8b02c6e23107cAC6ccf',
   },
   optimism: {
     id: 10,
     name: 'Optimism',
-    rpcUrl: 'https://optimism.llamarpc.com',
+    rpcUrl: 'https://optimism.publicnode.com',
     usdc: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
     cctp: '0x2703483B1a5a00Aa051D4a3FB146f3B6A5F8953d',
   },
   avalanche: {
     id: 43114,
     name: 'Avalanche',
-    rpcUrl: 'https://avalanche.llamarpc.com',
+    rpcUrl: 'https://avalanche.publicnode.com',
     usdc: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     cctp: '0x09Fb06A271faFf70A651047395AaEb6265265F13',
   },
@@ -146,14 +146,32 @@ export async function queryHistoricalTransfers(
 
     const contract = getUSDCContract(chainId);
     
-    // 查询 Transfer 事件
-    const filter = contract.filters.Transfer();
-    const logs = await provider.getLogs({
-      address: chain.usdc,
-      topics: [TRANSFER_EVENT_SIGNATURE],
-      fromBlock,
-      toBlock: toBlock === 'latest' ? await provider.getBlockNumber() : toBlock,
-    });
+    // 获取最新区块号
+    const latestBlock = toBlock === 'latest' ? await provider.getBlockNumber() : (toBlock as number);
+    const startBlock = fromBlock;
+    
+    // 分批查询，每次最多 1000 个区块
+    const BATCH_SIZE = 1000;
+    const allLogs: any[] = [];
+    
+    for (let i = startBlock; i <= latestBlock; i += BATCH_SIZE) {
+      const batchEnd = Math.min(i + BATCH_SIZE - 1, latestBlock);
+      console.log(`[Chain ${chainId}] 查询区块 ${i} 到 ${batchEnd}...`);
+      
+      try {
+        const batchLogs = await provider.getLogs({
+          address: chain.usdc,
+          topics: [TRANSFER_EVENT_SIGNATURE],
+          fromBlock: i,
+          toBlock: batchEnd,
+        });
+        allLogs.push(...batchLogs);
+      } catch (error) {
+        console.error(`Error querying blocks ${i}-${batchEnd}:`, error);
+      }
+    }
+    
+    const logs = allLogs;
 
     const db = await getDb();
     if (!db) return [];
